@@ -22,6 +22,11 @@ Um tipo de `OUTER JOIN`
 
 Nesse caso ele vai pegar todas as combinações de `LEFT` e `RIGHT OUTER JOIN` e retornar, mesmo que sejam repetidos ou nulos, é exatamente isso, ele vai retornar uma tabela combinada das duas outras funções.
 
+```sql
+SELECT t1.emp_name, t1.hire_date, t2.dept_name
+FROM employers AS t1
+FULL JOIN departments AS t2;
+```
 
 ### <span style = "color:#6a9955"> Output Esperado: </span>
 | emp_id | emp_name     | hire_date  | dept_name        |
