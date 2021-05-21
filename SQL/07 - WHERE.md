@@ -1,5 +1,5 @@
 ### <span style = "color:#6a9955"> WHERE </span>
-Usada com o Select, Update e Delete
+Usada com o Select, Update e Delete, é o equivalente do IF no SQL, seria algo como, faça x onde x = 10.
 
 ### <span style = "color:#6a9955"> Exemplo: </span>
 ```sql

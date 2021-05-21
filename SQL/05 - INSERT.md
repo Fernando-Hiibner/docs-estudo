@@ -1,5 +1,6 @@
 ### <span style = "color:#6a9955">INSERT INTO  </span>
-Multiplos conjuntos de values indicam inserção em novas linhas
+Usado para inserir valores nas linhas das tabelas, correspondentes as suas colunas, cada nova inserção é uma nova linha.
+Multiplos conjuntos de values indicam inserção em novas linhas.
 ```sql
 INSERT INTO <nome_da_tabela> (coluna1, coluna2,...) 
 VALUES (value1, value2,...), (value3, value4,...);
