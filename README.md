@@ -5,3 +5,10 @@
 * Um sistema capaz de gerar multiplas tuplas de values no INSERT INTO
 * Talvez integrar os arquivos que passam de CSV pro Banco
 * Usar o que eu ja desenvolvi pro Notecalc pra deixar o APP mais bonito
+
+# Links interessantes
+* https://stackoverflow.com/questions/31071952/generate-sql-statements-from-a-pandas-dataframe  
+* https://towardsdatascience.com/do-you-know-python-has-a-built-in-database-d553989c87bd
+* https://stackoverflow.com/questions/50185926/valueerror-shape-of-passed-values-is-1-6-indices-imply-6-6
+* https://www.educative.io/edpresso/how-to-use-regex-in-python
+* https://stackoverflow.com/questions/12047193/how-to-convert-sql-query-result-to-pandas-data-structure
