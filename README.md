@@ -12,3 +12,6 @@
 * https://stackoverflow.com/questions/50185926/valueerror-shape-of-passed-values-is-1-6-indices-imply-6-6
 * https://www.educative.io/edpresso/how-to-use-regex-in-python
 * https://stackoverflow.com/questions/12047193/how-to-convert-sql-query-result-to-pandas-data-structure
+* https://tk-tutorial.readthedocs.io/en/latest/tree/tree.html
+* https://anzeljg.github.io/rin2/book2/2405/docs/tkinter/ttk-Treeview.html
+* https://www.techiedelight.com/build-dictionary-from-list-of-keys-values-python/
