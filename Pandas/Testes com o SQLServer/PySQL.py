@@ -1,6 +1,7 @@
 from ast import literal_eval
 import pandas as pd
 import pyodbc as db
+import re
 
 import tkinter as tk
 from tkinter import ttk
@@ -144,12 +145,30 @@ class SQL(tk.Tk):
             print("Erro:", e)
     def insertInto(self, sql):
         try:
-            if self.dtDict != None:
-                for value in self.dtDict.values():
-                    if type(value) == "<class 'list'>":
-                        print("OI")
-            self.cursor.execute(sql)
+            #insert into TINF_INFTAB(TABI_NOM, TABI_DESPRI, TABI_DESSEC, TABI_OBS) values ('teste','teste','teste','teste')
+            #insert into TINF_INFTAB(TABI_NOM, TABI_DESPRI, TABI_DESSEC, TABI_OBS) values (['teste','teste','teste','teste'], ['teste','teste','teste','teste'])
+            print(sql)
+            valuesIndex = re.search('values (', sql, flags=re.IGNORECASE)
+            valuesTuples = sql[valuesIndex::]
+            valuesTuples = re.sub('values (', "", valuesTuples, flags=re.IGNORECASE)
+            valuesTuples = "("+valuesTuples
+            valuesTuples = literal_eval(valuesTuples)
+            print(valuesTuples, type(valuesTuples))
+            if type(valuesTuples[0]) == list:
+                newValuesTuples = ""
+                for valuesList in valuesTuples:
+                    _tuple = tuple(valuesList)
+                    print(_tuple, str(_tuple))
+                    newValuesTuples += str(_tuple)+", "
+                newValuesTuples = "values "+newValuesTuples[0:-2]
+                print(newValuesTuples)
+                print(sql)
+                sql = sql[0:valuesIndex]+newValuesTuples
+                print(sql)
+            ''' 
+            self.cursor.execute(sql, multi = True)
             self.connection.commit()
+            '''
         except Exception as e:
             print("Erro:", e)
 
