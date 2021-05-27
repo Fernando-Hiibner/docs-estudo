@@ -1,0 +1,2 @@
+A conversão de Set não mantem a integridade por causa do Transpose
+O insert de multiplas tuplas ta inserindo em dobro
