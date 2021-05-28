@@ -1,2 +1,4 @@
-A conversão de Set não mantem a integridade por causa do Transpose
-O insert de multiplas tuplas ta inserindo em dobro
+A conversão de Set não mantem a integridade por causa do Transpose (não é bug, o set é aleatorio)
+O insert de multiplas tuplas ta inserindo em dobro - Resolvido, era o read_sql junto com o cursor execute
+O fetchall tem que ser logo depois do execute, antes do commit, e pra um select
+Resolver store em UTF-8 (Tabela matematica)

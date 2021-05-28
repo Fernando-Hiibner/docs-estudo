@@ -1,3 +1,4 @@
+from os import curdir
 import tkinter as tk
 from tkinter import ttk
 from tkinter.messagebox import showerror, showinfo
@@ -105,12 +106,16 @@ class SQL(tk.Tk):
         #Essa parte aqui resolve esse porem dos dicionarios com lista
         valuesIndex = re.search('values \(', insert, flags=re.IGNORECASE)
         valuesTuple = tuple(literal_eval("("+insert[valuesIndex.end()::]))
-        if type(valuesTuple[0]) == list or type(valuesTuple[0]) == set:
+        if type(valuesTuple[0]) in (list, dict, set):
             _newValuesTuple = list()
             for i in range(len(valuesTuple[0])):
                 _list = list()
                 for j in range(len(valuesTuple)):
-                    _list.append(list(valuesTuple[j])[i])
+                    if type(valuesTuple[0]) == dict:
+                        _cDict = list(valuesTuple[j].values())
+                        _list.append(_cDict[i])
+                    else:
+                        _list.append(list(valuesTuple[j])[i])
                 _newValuesTuple.append(_list)
             _valuesTuple = ""
             _valuesTupleSize = len(_newValuesTuple)-1
@@ -195,15 +200,14 @@ class SQL(tk.Tk):
                 if sqlQuery not in ['\n', '\t']:
                     sqlQuery = sqlQuery+";"
                     self.cursor.execute(sqlQuery)
-                    self.connection.commit()
                     try:
-                        out = pd.read_sql(sqlQuery, self.connection)
+                        out = pd.DataFrame.from_records(self.cursor.fetchall(), columns=[col[0] for col in self.cursor.description])
                         if outputText != None:
                             self.writeTree(out, outputText)
-                        showinfo("Sucesso","Operação concluida!\n"+sqlQuery)
-                        
-                    except:
-                        showinfo("Sucesso","Operação concluida!\n"+sqlQuery)
+                    except Exception as e:
+                        pass
+                    self.connection.commit()
+            showinfo("Sucesso","Operação concluida!")
         except db.ProgrammingError as e:
             showerror("Erro:",e)
 
