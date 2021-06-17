@@ -1,0 +1,4 @@
+https://www.zentut.com/java-swing/
+https://refactoring.guru/design-patterns/observer
+https://www.zentut.com/java-swing/java-swing-cardlayout/
+https://www.javatpoint.com/java-actionlistener
