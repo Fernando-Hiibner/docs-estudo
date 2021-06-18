@@ -1,0 +1,2 @@
+Pra adicionar imagens e etc no note, teria que converter a imagem pra binario e salvar as opções dos widgets em formato de json com seus atributos
+é possivel mas é complicado, vou tentar

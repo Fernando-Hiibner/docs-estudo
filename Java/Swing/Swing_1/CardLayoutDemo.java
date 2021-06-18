@@ -7,7 +7,14 @@ import javax.swing.*;
 public class CardLayoutDemo {
 
     public static void main(String[] args) {
-
+        try
+        {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        }
+        catch(Exception e)
+        {
+            System.out.println("Falha: "+e);
+        }
         final String card1Text = "Card 1";
         final String card2Text = "Card 2";
         final String card3Text = "Card 3";

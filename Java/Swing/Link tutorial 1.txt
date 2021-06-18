@@ -3,5 +3,7 @@ https://refactoring.guru/design-patterns/observer
 https://www.zentut.com/java-swing/java-swing-cardlayout/
 https://www.javatpoint.com/java-actionlistener
 
+https://www.zentut.com/java-swing/simple-login-dialog/
+
 Parei aqui:
-https://www.zentut.com/java-swing/jradiobutton/
+https://www.zentut.com/java-swing/how-to-create-popup-menu-in-java-swing/
