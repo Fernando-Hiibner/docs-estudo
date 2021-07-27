@@ -1,3 +1,34 @@
-body {
+.body-white-mode {
     background-color: white;
+    color : #1e1e1e
+}
+.body-dark-mode {
+    background-color: #1e1e1e;
+    color : #cccccc;
+}
+.input-button-white-mode {
+    color : #1e1e1e;
+    border : 0;
+    border-radius: 1cm;
+    background-color: #cccccc;
+    padding: 10px;
+}
+.input-button-dark-mode {
+    color : #cccccc;
+    border : 0;
+    border-radius: 1cm;
+    background-color: #252526;
+    padding: 10px;
+}
+.input-text-white-mode {
+    background-color: white;
+    color : #1e1e1e;
+    border-radius: 0.5cm;
+    border-color : #1e1e1e;
+}
+.input-text-dark-mode {
+    background-color: #252526;
+    color: #cccccc;
+    border-radius: 0.5cm;
+    border-color : #cccccc;
 }
