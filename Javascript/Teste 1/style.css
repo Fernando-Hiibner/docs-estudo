@@ -1,0 +1,19 @@
+body {
+    background-color: #1e1e1e;
+    color : #cccccc;
+}
+h1 {
+    color: #cccccc;
+}
+button {
+    color : #1e1e1e;
+    border : 0;
+    border-radius: 1cm;
+    background-color: #cccccc;
+    padding: 10px;
+}
+textarea {
+    background-color: #1e1e1e;
+    color: #cccccc;
+    resize: none;
+}

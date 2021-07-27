@@ -1,4 +1,4 @@
-
+﻿
 # Como otimizar consultas SQL
 
 ## Otimizador SQL
@@ -20,8 +20,8 @@ Em uma query como essa abaixo, o otimizador SQL determina um plano de execução
 Uso de indice é recomendado quando a consulta sera feita em tabelas grandes. Isso fara com que todas as tabelas precisem de uma chave-primária.  </br>  
 Normalmente são criados em colunas que são acessadas com maior frequência e podem ser criados em uma única coluna ou um grupo delas.
 * #### Indices clusterizados e não clusterizados
-    * Clusterizados: Uma tabela pode ter apenas um desses, eles determinam a sequencia de armazenamentos de registros em uma tabela e são usados em campos de busca frequente ou que são acessados de forma ordenada.
-    * Não clusterizados: Os dados são armazenados em um local diferente e referenciados por ponteiros, em geral são usados em: critérios de pesquisa; usados para se juntar a outras tabelas; usados como campos de chave estrangeira ou na cláusula order by.
+    * **Clusterizados:** Uma tabela pode ter apenas um desses, eles determinam a sequencia de armazenamentos de registros em uma tabela e são usados em campos de busca frequente ou que são acessados de forma ordenada.
+    * **Não clusterizados:** Os dados são armazenados em um local diferente e referenciados por ponteiros, em geral são usados em: critérios de pesquisa; usados para se juntar a outras tabelas; usados como campos de chave estrangeira ou na cláusula order by.
     Eles não permitem o uso de text, ntext, image, porém ele permite o uso de view então...
 
 ## Views indexadas
@@ -167,24 +167,159 @@ INCLUDE (SalesOrderID,SubTotal)
 ```
 Nesse caso já existe um ID em SalesPersonId. Status é uma coluna que na maioria das vezes tem apenas um valor, o que significa que como uma coluna de ordenação ela não possui muito valor. O impacto de 19% de performance não é tão impressionante, porém se for uma consulta que ocorre muitas vezes durante o dia vale a pena o esforço de adcionar um índice pra isso.
 Considere outra sugestão de índice:
-![enter image description here](https://www.sqlshack.com/wp-content/uploads/2018/06/c-users-epollack-appdata-local-microsoft-windows-1-7.jpeg)
+![enter image description here](https://www.sqlshack.com/wp-content/uploads/2018/06/c-users-epollack-appdata-local-microsoft-windows-1-7.jpeg)    
+Nesse exemplo o índice em falta sugerido é:
 
+```sql
+CREATE  NONCLUSTERED  INDEX [<Name of Missing Index, sysname,>]
+ON [Person].[Person] ([FirstName])
+INCLUDE ([BusinessEntityID],[Title])
+```
+Dessa vez o índice sugerido aumentaria a performance em 93% e lidaria com a coluna não indexada (FirstName), precisamos colocar BussinesEntityID and Title como colunas de INCLUDE? Pra responder essa questão precisamos pensar "Como sabemos se a performance de uma query está boa?", se apenas ao adicionar o índice resolver o problema, então parar nele é a decisão correta, caso a performance continue ruim, o próximo passo seria adiciona-las.
+Em quanto tivermos em mente que índices precisam de manutenção e que eles diminuem a performance de operações de escrita, nós podemos abordar índice de uma perspectiva pragmática.
+
+### Sobrecarregando uma tabela de índices
+Quando uma tabela tem muitos índices, as operações de escrita nela se tornam muito lentas (Como UPDATE, DELETE e INSERT), porque sempre que elas mudam algo, elas tem que mudar os índices, além disso índices consomem espaço de armazenamento.
+### Deixando uma tabela com poucos índices
+Uma query com poucos índices não processa muito bem operações de leitura
+### Sem índice clusterizado/Primary key
+Todas as tabelas devem ter um índice clusterizado e uma Primary Key. Índices clusterizados quase sempre são mais performáticos que índices de heap, e provem a infraestrutura necessária para a adição de índices não clusterizados. A Primary Key provem informações valiosas para o otimizador de querys. Se encontrar uma tabela sem algum desses dois, considere a adição deles como prioridade máxima e resolva isso antes de continuar pesquisando outras causas.
+
+## Muitas tabelas
+Para ajudar o otimizador SQL a encontrar o melhor plano de execução devemos diminuir o número de tabelas em uma query, visto que, cada tabela nova na query aumenta sua complexidade de forma fatorial, e o otimizador tem pouco tempo para encontrar entre todos os planos possíveis o melhor.
+Baseado na forma que as tabelas forem ligadas, elas se encaixarão em uma das duas formas abaixo:
+* **Left-Deep Tree**: A join B, B join C, C join D, D join E, etc… Essa é uma query onde a maioria das tabelas se juntam de forma sequencial uma depois da outra.
+* **Bushy Tree**: A join B, A join C, B join D, C join E, etc…Essa é uma query onde as tabelas se dividem em múltiplas unidades lógicas em cada raiz da árvore.
+
+Bush Tree:
+![enter image description here](https://www.sqlshack.com/wp-content/uploads/2018/06/word-image-43.png)  
+Left Deep Tree
+![enter image description here](https://www.sqlshack.com/wp-content/uploads/2018/06/word-image-44.png)  
+Considerando que a Left-Deep Tree é ordenada de forma mais parecida com a que as tabelas são ligadas, o número de candidatos de plano de execução diminuem (As formulas matemáticas incluídas nas imagens são usadas para encontrar a quantidade de planos de execução possíveis para aquela árvore).
+Para enfatizar isso, considere essa query envolvendo 12 tabelas:
+```sql
+SELECT  TOP  25
+Product.ProductID,
+Product.Name  AS  ProductName,
+Product.ProductNumber,
+CostMeasure.UnitMeasureCode,
+CostMeasure.Name  AS  CostMeasureName,
+ProductVendor.AverageLeadTime,
+ProductVendor.StandardPrice,
+ProductReview.ReviewerName,
+ProductReview.Rating,
+ProductCategory.Name  AS  CategoryName,
+ProductSubCategory.Name  AS  SubCategoryName
+FROM  Production.Product
+INNER  JOIN  Production.ProductSubCategory
+ON  ProductSubCategory.ProductSubcategoryID  =  Product.ProductSubcategoryID
+INNER  JOIN  Production.ProductCategory
+ON  ProductCategory.ProductCategoryID  =  ProductSubCategory.ProductCategoryID
+INNER  JOIN  Production.UnitMeasure  SizeUnitMeasureCode
+ON  Product.SizeUnitMeasureCode  =  SizeUnitMeasureCode.UnitMeasureCode
+INNER  JOIN  Production.UnitMeasure  WeightUnitMeasureCode
+ON  Product.WeightUnitMeasureCode  =  WeightUnitMeasureCode.UnitMeasureCode
+INNER  JOIN  Production.ProductModel
+ON  ProductModel.ProductModelID  =  Product.ProductModelID
+LEFT  JOIN  Production.ProductModelIllustration
+ON  ProductModel.ProductModelID  =  ProductModelIllustration.ProductModelID
+LEFT  JOIN  Production.ProductModelProductDescriptionCulture
+ON  ProductModelProductDescriptionCulture.ProductModelID  =  ProductModel.ProductModelID
+LEFT  JOIN  Production.ProductDescription
+ON  ProductDescription.ProductDescriptionID  =  ProductModelProductDescriptionCulture.ProductDescriptionID
+LEFT  JOIN  Production.ProductReview
+ON  ProductReview.ProductID  =  Product.ProductID
+LEFT  JOIN  Purchasing.ProductVendor
+ON  ProductVendor.ProductID  =  Product.ProductID
+LEFT  JOIN  Production.UnitMeasure  CostMeasure
+ON  ProductVendor.UnitMeasureCode  =  CostMeasure.UnitMeasureCode
+ORDER  BY  Product.ProductID  DESC;
+```
+Se essa query fosse uma bush tree teria:
+(2n-2)! / (n-1)! = (2*12-1)! / (12-1)! = 28,158,588,057,600 possíveis planos de execução.
+Se fosse uma left-deep tree teria:
+n! = 12! = 479,001,600 possíveis planos de execução.
+
+Métodos para otimizar uma query com muitas tabelas:
+* Mover a metadata ou colocar essas tabelas em uma outra query que põe esses dados em uma tabela temporária que pode ser usada em um JOIN depois. 
+*  JOINs usados em uma única constante podem ser convertidos para parâmetro ou variável.
+* Quebrar uma query grande em menores querys que podem ser ligadas depois
+* Para querys muito usadas, considere o uso de views indexadas
+* Remova tabelas desnecessárias, subquerys e joins
+Para separar uma query grande em pequenas querys é preciso ter certeza que não vai ter mudanças de dados entre essas operações que podem alterar nossos resultados finais, para isso podemos usar um mix de níveis de isolação, transações, e bloqueios para garantir a integridade dos dados.
+
+Exemplo de otimizações feitas na query la de cima:
+```sql
+SELECT  TOP  25
+Product.ProductID,
+Product.Name  AS  ProductName,
+Product.ProductNumber,
+ProductCategory.Name  AS  ProductCategory,
+ProductSubCategory.Name  AS  ProductSubCategory,
+Product.ProductModelID
+INTO  #Product
+FROM  Production.Product
+INNER  JOIN  Production.ProductSubCategory
+ON  ProductSubCategory.ProductSubcategoryID  =  Product.ProductSubcategoryID
+INNER  JOIN  Production.ProductCategory
+ON  ProductCategory.ProductCategoryID  =  ProductSubCategory.ProductCategoryID
+ORDER  BY  Product.ModifiedDate  DESC;
+SELECT
+Product.ProductID,
+Product.ProductName,
+Product.ProductNumber,
+CostMeasure.UnitMeasureCode,
+CostMeasure.Name  AS  CostMeasureName,
+ProductVendor.AverageLeadTime,
+ProductVendor.StandardPrice,
+ProductReview.ReviewerName,
+ProductReview.Rating,
+Product.ProductCategory,
+Product.ProductSubCategory
+FROM  #Product  Product
+INNER  JOIN  Production.ProductModel
+ON  ProductModel.ProductModelID  =  Product.ProductModelID
+LEFT  JOIN  Production.ProductReview
+ON  ProductReview.ProductID  =  Product.ProductID
+LEFT  JOIN  Purchasing.ProductVendor
+ON  ProductVendor.ProductID  =  Product.ProductID
+LEFT  JOIN  Production.UnitMeasure  CostMeasure
+ON  ProductVendor.UnitMeasureCode  =  CostMeasure.UnitMeasureCode;
+DROP  TABLE  #Product;
+```
+Esse é apenas um exemplo de otimização, além disso podemos ver tabelas, colunas, variáveis ou qualquer outra coisa que não estão sendo usadas e retira-las da query.
+
+## Query Hints
+Uma query hint é um comando direto pro otimizador SQL.
+Existem diversos tipos de hints no SQL Server, que afetam níveis de isolação, tipos de join, bloqueio de tabela, e outros. 
+Perigos ao usar as hints:
+*  Futuras mudanças ao schema podem fazer com que uma hint se torne inútil ou até mesmo perigosa, sendo necessário altera-la.
+* Hints podem obscurecer problemas maiores, como índices em falta, requisições de dados excessivamente largas ou regras de negócio quebradas. Nesse caso é preferível resolver a raiz do problema.
+* Hints podem resultar em comportamentos estranhos como por exemplo dados sujos do NOLOCK.
+* Usar uma hint pra lidar com um problema na ponta de um processo pode até otimiza-lo, mas quanto ao resto do processo, não há como garantir
+
+Alguns exemplos de query hint:
+* **NOLOCK:** Com essa hint, no caso do SQL achar um dado que está bloqueado, o SQL usará dados antigos, também conhecido como dado sujo.
+* **RECOMPILE:** Adicionar isso ao fim da query, vai fazer com que um novo plano de execução seja gerado toda vez que a query for executada.
+* **MERGE/HASH/LOOP:** Isso vai especificar um tipo específico de operação para o Join, isso é super arriscado visto que o tipo de join ideal muda a medida que as tabelas mudam.
+* **OPTIMIZE FOR:** Pode especificar um valor pra otimizar a query.
 
 
 # Comandos para ver estatísticas
-* SET STATISTICS TIME ON  
+* **SET STATISTICS TIME ON**  
   Mostra o tempo em milissegundos necessário para analisar, compilar e executar cada instrução.
-* SET STATISTICS OI ON  
-  1. Tabela: nome da tabela envolvida na consulta;
-  2. Número de verificações: número de buscas iniciadas para recuperar todos os valores para saída final;
-  3. Leituras lógicas: número de páginas lidas do cache de dados do SQL Server;
-  4. Leituras físicas: número de páginas lidas no disco do servidor;
-  5. Leituras read-ahead: número de páginas colocadas no cache para a consulta;
-  6. Leituras lógicas lob: número de colunas com valor grande: VARCHAR(MAX), VARCHAR(MAX) e VARBINARY(MAX) lidas do cache;
-  7. Leituras físicas lob: número de colunas com valor grande: VARCHAR(MAX), VARCHAR(MAX) e VARBINARY(MAX) lidas do disco do servidor;
-  8. Leituras read-ahead lob: número de colunas com valor grande: VARCHAR(MAX), VARCHAR(MAX) e VARBINARY(MAX) adicionadas no cache de dados.
+* **SET STATISTICS OI ON**  
+  1. **Tabela:** nome da tabela envolvida na consulta;
+  2. **Número de verificações:** número de buscas iniciadas para recuperar todos os valores para saída final;
+  3. **Leituras lógicas:** número de páginas lidas do cache de dados do SQL Server;
+  4. **Leituras físicas:** número de páginas lidas no disco do servidor;
+  5. **Leituras read-ahead:** número de páginas colocadas no cache para a consulta;
+  6. **Leituras lógicas lob:** número de colunas com valor grande: VARCHAR(MAX), VARCHAR(MAX) e VARBINARY(MAX) lidas do cache;
+  7. **Leituras físicas lob:** número de colunas com valor grande: VARCHAR(MAX), VARCHAR(MAX) e VARBINARY(MAX) lidas do disco do servidor;
+  8. **Leituras read-ahead lob:** número de colunas com valor grande: VARCHAR(MAX), VARCHAR(MAX) e VARBINARY(MAX) adicionadas no cache de dados.
 
 ###### Fonte
 https://www.devmedia.com.br/otimizacao-de-consultas-sql/33485  
 https://www.devmedia.com.br/10-tecnicas-de-otimizacao-de-consultas-sql/39499 -> Só os comandos pra ver estatísticas, o resto do conteúdo desse site é pago.  
 https://www.sqlshack.com/query-optimization-techniques-in-sql-server-tips-and-tricks/  
+

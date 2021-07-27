@@ -1,0 +1,341 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Otimizador SQL</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h1 id="como-otimizar-consultas-sql">Como otimizar consultas SQL</h1>
+<h2 id="otimizador-sql">Otimizador SQL</h2>
+<p>Muitas das propostas de melhora de desempenho desse .md vão mencionar o Otimizador SQL que é basicamente um “programa” nativo do SQL que roda antes da query para criar um plano de execução otimizado (ele não é externo, ele é nativo do SQL e sempre esteve ai rodando nas suas consultas).</p>
+<h4 id="exemplo">Exemplo:</h4>
+<p>Em uma query como essa abaixo, o otimizador SQL determina um plano de execução em passos (nesse caso do 1 ao 11), para fazer uma execução mais eficiente dessa query sem alterar seu resultado.</p>
+<pre class=" language-sql"><code class="prism  language-sql"><span class="token punctuation">(</span><span class="token number">8</span><span class="token punctuation">)</span> <span class="token keyword">SELECT</span> <span class="token punctuation">(</span><span class="token number">9</span><span class="token punctuation">)</span> <span class="token keyword">DISTINCT</span> <span class="token punctuation">(</span><span class="token number">11</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span><span class="token keyword">TOP</span> quantidade<span class="token operator">&gt;</span> <span class="token operator">&lt;</span>lista <span class="token number">de</span> campos <span class="token number">de</span> retorno<span class="token operator">&gt;</span>
+ <span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token keyword">FROM</span> <span class="token operator">&lt;</span>tabela<span class="token operator">&gt;</span>
+ <span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span>tipo <span class="token number">de</span> junção<span class="token operator">&gt;</span> <span class="token keyword">JOIN</span> <span class="token operator">&lt;</span>tabela<span class="token operator">&gt;</span> <span class="token keyword">ON</span> <span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span>condições <span class="token number">da</span> junção<span class="token operator">&gt;</span>
+ <span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">)</span> <span class="token keyword">WHERE</span> <span class="token operator">&lt;</span>condições <span class="token keyword">where</span> <span class="token operator">&gt;</span>
+ <span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span> <span class="token keyword">GROUP</span> <span class="token keyword">BY</span> <span class="token operator">&lt;</span>lista <span class="token number">de</span> agrupamento<span class="token operator">&gt;</span>
+ <span class="token punctuation">(</span><span class="token number">6</span><span class="token punctuation">)</span> <span class="token keyword">WITH</span> {CUBE <span class="token operator">|</span> ROLLUP}
+ <span class="token punctuation">(</span><span class="token number">7</span><span class="token punctuation">)</span> <span class="token keyword">HAVING</span> <span class="token operator">&lt;</span>condições <span class="token keyword">having</span><span class="token operator">&gt;</span>
+<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span> <span class="token keyword">ORDER</span> <span class="token keyword">BY</span> <span class="token operator">&lt;</span>lista <span class="token number">de</span> campos<span class="token operator">&gt;</span>
+</code></pre>
+<h2 id="indices">Indices</h2>
+<p>Uso de indice é recomendado quando a consulta sera feita em tabelas grandes. Isso fara com que todas as tabelas precisem de uma chave-primária.  <br>
+Normalmente são criados em colunas que são acessadas com maior frequência e podem ser criados em uma única coluna ou um grupo delas.</p>
+<ul>
+<li>
+<h4 id="indices-clusterizados-e-não-clusterizados">Indices clusterizados e não clusterizados</h4>
+<ul>
+<li><strong>Clusterizados:</strong> Uma tabela pode ter apenas um desses, eles determinam a sequencia de armazenamentos de registros em uma tabela e são usados em campos de busca frequente ou que são acessados de forma ordenada.</li>
+<li><strong>Não clusterizados:</strong> Os dados são armazenados em um local diferente e referenciados por ponteiros, em geral são usados em: critérios de pesquisa; usados para se juntar a outras tabelas; usados como campos de chave estrangeira ou na cláusula order by.<br>
+Eles não permitem o uso de text, ntext, image, porém ele permite o uso de view então…</li>
+</ul>
+</li>
+</ul>
+<h2 id="views-indexadas">Views indexadas</h2>
+<p>Podem ser usadas de duas maneiras diferentes. Primeira, pode ser chamada a partir de uma consulta (modo convencional), dessa forma ele é capaz de retornar os resultados da view quase que instantaneamente. Segunda, o otimizador SQL e o gerenciador do banco aplicam automaticamente os indices das views quando existem e são possíveis de serem usados.<br>
+O primeiro índice de uma view é sempre um índice clusterizado, os outros podem ser não clusterizados.</p>
+<h2 id="uso-de-union">Uso de Union</h2>
+<p>O union junta dois conjuntos eliminando os repetidos, é a melhor escolha quando se precisa juntar dois conjuntos de select e você sabe que eles tem linhas duplicadas, caso não tenha é melhor o Union All, já que ele não perdera tempo e recursos executando o comando distinct.</p>
+<pre class=" language-sql"><code class="prism  language-sql"><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+<span class="token keyword">SELECT</span> <span class="token number">a</span><span class="token punctuation">.</span>nome_columa1
+   <span class="token keyword">FROM</span> tabela1 <span class="token number">a</span>
+   <span class="token keyword">WHERE</span> <span class="token operator">NOT</span> <span class="token keyword">EXISTS</span> <span class="token punctuation">(</span><span class="token keyword">SELECT</span> <span class="token number">b</span><span class="token punctuation">.</span>nome_columa2 <span class="token keyword">FROM</span> tabela2 <span class="token number">b</span> <span class="token keyword">WHERE</span> <span class="token number">b</span><span class="token punctuation">.</span>nome_columa2   <span class="token operator">=</span> <span class="token number">a</span><span class="token punctuation">.</span>nome_columa1<span class="token punctuation">)</span>
+
+<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
+<span class="token keyword">SELECT</span> <span class="token number">a</span><span class="token punctuation">.</span>nome_columa1
+   <span class="token keyword">FROM</span> tabela1 <span class="token number">a</span>
+     <span class="token keyword">LEFT</span> <span class="token keyword">JOIN</span> tabela2 <span class="token number">b</span> <span class="token keyword">ON</span> <span class="token number">b</span><span class="token punctuation">.</span>nome_columa2   <span class="token operator">=</span> <span class="token number">a</span><span class="token punctuation">.</span>nome_columa1
+   <span class="token keyword">WHERE</span> <span class="token number">b</span><span class="token punctuation">.</span>nome_columa2 <span class="token operator">IS</span> <span class="token boolean">NULL</span>
+
+<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span>
+<span class="token keyword">SELECT</span> nome_columa1
+   <span class="token keyword">FROM</span> tabela1
+   <span class="token keyword">WHERE</span> nome_columa1 <span class="token operator">NOT</span> <span class="token operator">IN</span> <span class="token punctuation">(</span><span class="token keyword">SELECT</span> nome_columa2 <span class="token keyword">FROM</span> tabela2<span class="token punctuation">)</span>
+</code></pre>
+<p>Em cada uma das consultas apresentadas o resultado é o mesmo. Porém, qual delas tem a melhor performance? Assumindo que todo o resto é igual, a versão que tem o melhor desempenho é a primeira (1) e a última (3) é a pior. O comando not exists (ou exists) é o mais eficiente.</p>
+<h2 id="uso-do-comando-group-by">Uso do comando Group By</h2>
+<p>Deve ser usado apenas se houver função agregada (quando se trata de performance), nesse caso deve-se considerar as seguintes recomendações ao usar o group by.</p>
+<ul>
+<li>
+<p>O número de linhas de retorno a partir da consulta deve ser o menor possível;</p>
+</li>
+<li>
+<p>Manter o número de agrupamentos o mais limitado possível;</p>
+</li>
+<li>
+<p>Não agrupar colunas redundantes;</p>
+</li>
+<li>
+<p>Se existe um join na mesma instrução select que tem um group by, tente reescrever uma consulta utilizando uma subconsulta em vez de usar o join. Se for possível fazer isso, o desempenho será melhor. Se for necessário usar um join, utilize as colunas do group by com a mesma coluna da tabela em que a função está sendo usada;</p>
+</li>
+<li>
+<p>Considere adicionar um order by para a(s) mesma(s) coluna(s) existente(s) no group by. Isso pode fazer com que ele tenha um melhor desempenho.</p>
+</li>
+</ul>
+<h2 id="or-em-clausulas-joinwhere-entre-colunas-e-tabelas">Or em clausulas Join/Where entre colunas e tabelas</h2>
+<p>O uso do <code>or</code> entre colunas ou tabelas pode prejudicar muito a performance de uma consulta.</p>
+<pre class=" language-sql"><code class="prism  language-sql"><span class="token keyword">SELECT</span> <span class="token keyword">DISTINCT</span>
+	PRODUCT<span class="token punctuation">.</span>ProductID<span class="token punctuation">,</span>
+	PRODUCT<span class="token punctuation">.</span>Name
+<span class="token keyword">FROM</span> Production<span class="token punctuation">.</span>Product PRODUCT
+<span class="token keyword">INNER</span> <span class="token keyword">JOIN</span> Sales<span class="token punctuation">.</span>SalesOrderDetail DETAIL
+<span class="token keyword">ON</span> PRODUCT<span class="token punctuation">.</span>ProductID <span class="token operator">=</span> DETAIL<span class="token punctuation">.</span>ProductID
+<span class="token operator">OR</span> PRODUCT<span class="token punctuation">.</span>rowguid <span class="token operator">=</span> DETAIL<span class="token punctuation">.</span>rowguid<span class="token punctuation">;</span>
+</code></pre>
+<p>Nessa consulta por exemplo a tabela Product contem 504 linhas, e a tabela SalesOrderDetail contém 121317 linhas, porém para a realização da operação com o Or foi necessário 1.2 milhões de leituras e 2 segundos para executar.<br>
+Existem diversas formas de substituir o Or por uma operação mais rápida, mas isso depende muito do cenário que a query se encontra e o que aquele Or está tentando atingir, abaixo segue um exemplo de como essa query acima poderia ser otimizada.</p>
+<pre class=" language-sql"><code class="prism  language-sql"><span class="token keyword">SELECT</span>
+	PRODUCT<span class="token punctuation">.</span>ProductID<span class="token punctuation">,</span>
+	PRODUCT<span class="token punctuation">.</span>Name
+<span class="token keyword">FROM</span> Production<span class="token punctuation">.</span>Product PRODUCT
+<span class="token keyword">INNER</span> <span class="token keyword">JOIN</span> Sales<span class="token punctuation">.</span>SalesOrderDetail DETAIL
+<span class="token keyword">ON</span> PRODUCT<span class="token punctuation">.</span>ProductID <span class="token operator">=</span> DETAIL<span class="token punctuation">.</span>ProductID
+<span class="token keyword">UNION</span>
+<span class="token keyword">SELECT</span>
+	PRODUCT<span class="token punctuation">.</span>ProductID<span class="token punctuation">,</span>
+	PRODUCT<span class="token punctuation">.</span>Name
+<span class="token keyword">FROM</span> Production<span class="token punctuation">.</span>Product PRODUCT
+<span class="token keyword">INNER</span> <span class="token keyword">JOIN</span> Sales<span class="token punctuation">.</span>SalesOrderDetail DETAIL
+<span class="token keyword">ON</span> PRODUCT<span class="token punctuation">.</span>rowguid <span class="token operator">=</span> DETAIL<span class="token punctuation">.</span>rowguid
+</code></pre>
+<p>Nesse exemplo o número de leituras caiu de 1.2 milhões para apenas 750 e o tempo caiu pra baixo de 1 segundo.</p>
+<h2 id="busca-coringa-com-strings">Busca “coringa” com Strings</h2>
+<p>Para colunas de String frequentemente buscadas vale a pena olhar se:</p>
+<ul>
+<li>Índices estão presentes nas colunas pesquisadas;</li>
+<li>Esses índices podem ser usados;</li>
+<li>Se não, podemos usar índices de String completos?</li>
+<li>Se não, podemos usar hashes, n-gramas, ou outra solução?</li>
+</ul>
+<p>Sem o uso de uma técnica de otimização de busca por String, o SQL pode demorar demais pra fazer a consulta, exemplo:</p>
+<pre class=" language-sql"><code class="prism  language-sql"><span class="token keyword">SELECT</span>
+	Person<span class="token punctuation">.</span>BusinessEntityID<span class="token punctuation">,</span>
+	Person<span class="token punctuation">.</span>FirstName<span class="token punctuation">,</span>
+	Person<span class="token punctuation">.</span>LastName<span class="token punctuation">,</span>
+	Person<span class="token punctuation">.</span>MiddleName
+<span class="token keyword">FROM</span> Person<span class="token punctuation">.</span>Person
+<span class="token keyword">WHERE</span> Person<span class="token punctuation">.</span>LastName <span class="token operator">LIKE</span> <span class="token string">'%For%'</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Ao usar % no começo da String, o uso de índices crescentes se torna impossível, e de forma semelhante, ao usar % no fim de uma String, o uso de índices decrescentes se torna impossível.<br>
+Existem diversas formas de otimizar isso:</p>
+<ul>
+<li>Repensar a aplicação. É realmente necessário o uso de uma busca coringa? Se não se livre dela e o problema estará resolvido.</li>
+<li>É possível adicionar mais filtros capazes de reduzir a quantidade de dados que deverão ser lidos? Como por exemplo, data, tempo, status e etc.</li>
+<li>É possível retirar a % de algum dos lados?</li>
+<li>Índice de texto completo (uma String sem %) possível de ser usada? Se sim implemente.</li>
+<li>É possível de implementar uma consulta hash ou uma solução n-grama.</li>
+</ul>
+<p>Os 3 primeiros pontos são mais escolhas de design do que métodos de otimização.<br>
+O ultimo método a ser abordado nesse tópico é o n-grama.<br>
+O que é um n-grama?<br>
+Nos campos de linguística computacional e probabilidade, um n-grama é uma sequência contígua de n itens de uma determinada amostra de texto ou fala.<br>
+Para se usar um n-grama é necessário entender profundamente as regras de pesquisa usadas pela aplicação.</p>
+<ul>
+<li>Existe um número mínimo ou máximo de caracteres permitidos na busca?</li>
+<li>Buscas vazias são permitidas?</li>
+<li>Múltiplas palavras/frases são permitidas?</li>
+<li>Precisamos armazenar uma Substring no começo da String? Se sim, isso pode ser feito com uma busca por índice.</li>
+</ul>
+<p>Após avaliar essas considerações, podemos pegar uma coluna de String e quebra-la em segmentos. Por exemplo, considere um sistema de pesquisa onde o tamanho mínimo da String de pesquisa é de 3 caracteres, e a palavra armazenada é “Dinossauro”, as Substrings de dinossauro que possuem 3 caracteres ou mais (Excluindo Din já que é facilmente encontrável com índices) são: ino, inos, inoss, inossa, inossau, inossaur, inossauro, nos, noss, nossa, nossau, nossaur, nossauro, oss, ossa, ossau, ossaur, ossauro, ssa, ssau, ssaur, ssauro, sau, saur, sauro, aur, auro, uro.<br>
+Com isso nós podemos criar uma tabela com esses valores (n-grama), e fazer uma busca por igualdade, usando essa tabela e a nossa. Exemplo:</p>
+<pre class=" language-sql"><code class="prism  language-sql"><span class="token keyword">SELECT</span>
+n_gram_table<span class="token punctuation">.</span>my_big_table_id_column
+<span class="token keyword">FROM</span>  dbo<span class="token punctuation">.</span>n_gram_table
+<span class="token keyword">WHERE</span>  n_gram_table<span class="token punctuation">.</span>n_gram_data  <span class="token operator">=</span>  <span class="token string">'Dino'</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Assumindo que n_gram.data seja indexado, ele retornara rapidamente os IDs da tabela grande que possui a palavra Dino. A tabela n-grama só precisa de duas colunas, e seu tamanho pode ser limitado usando as regras que definimos acima, mesmo que ela fique grande, ainda sim será muito mais rápida que o método normal.<br>
+O problema dessa solução é manutenção, será necessário atualizar a tabela de n-grama toda vez que uma nova linha for inserida na tabela principal, tendo isso em vista, recomenda-se essa aproximação apenas para pequenas Strings, como nome, códigos ZIP, ou números de telefone.<br>
+Resumindo, não há soluções simples para resolver o problema de performance de buscas coringas, o que podemos fazer é rever nossas regras de design e arquitetura para tentar retirar o “%”, ou limitar a forma que buscamos de forma que permita a implementação de outros filtros.</p>
+<h2 id="grandes-operações-de-escrita">Grandes operações de escrita</h2>
+<p>Esse tópico tratara de um cenário onde a iteração ajuda na performance da consulta e falará sobre contenção de dados.<br>
+Ao mexer com grandes operações de escrita, o SQL coloca as tabelas envolvidas na transação em contenção, bloqueando o uso delas por outras tabelas durante o tempo que a transação ta em execução, isso é bom porque garante a segurança e integridade dos dados e confiabilidade dos resultados obtidos, por outro lado, tem a desvantagem de bloquear o uso das tabelas envolvidas na transação até que ela acabe, e isso pode demorar muito.<br>
+Além da contenção outro problema é que grandes operações geram muitos logs, o que pode ser perigoso, então é sempre bom ficar de olho para garantir que o log da transação não fique cheio, e principalmente que o disco rígido do servidor não fique também.<br>
+Uma boa forma de otimizar isso e evitar grandes períodos de contenção, seria dividir a operações em pequenas operações que afetam poucas linhas por vez, caso isso não seja possível, executar essas operações em momentos do dia que o servidor principal não esta sendo extensivamente usado.<br>
+Operações que podem gerar grandes operações de escrita.</p>
+<ul>
+<li>Adicionar uma nova coluna a uma tabela e ir preenchendo a ela inteira.</li>
+<li>Atualizar uma coluna inteira da tabela</li>
+<li>Mudar o tipo de dado de uma coluna</li>
+<li>Importar um grande volume de novos dados</li>
+<li>Arquivar ou deletar um grande número de dados antigos.</li>
+</ul>
+<h2 id="indices-em-falta">Indices em falta</h2>
+<p>O SQL Server por meio da ferramenta “plano de execução XML” ou “Índice em falta DMV”, mostra índices em falta que provavelmente melhorariam o desempenho de uma query.<br>
+<img src="https://www.sqlshack.com/wp-content/uploads/2018/06/c-users-epollack-appdata-local-microsoft-windows-1-6.jpeg" alt="Exemplo das ferramentas mencionadas"><br>
+O aviso é util mas é importante levar em consideração algumas coisas antes de usar o que o SQL Server propõe.</p>
+<ul>
+<li>Já existe algum índice semelhante a esse que pode ser modificado pra cumprir esse propósito?</li>
+<li>Precisamos de todas as colunas? Ou um índice apenas nas colunas que vamos filtrar já é o suficiente?</li>
+<li>Quão grande é o impacto do índice? Vai melhorar a query em 98% ou apenas 5%.</li>
+<li>Esse índice já existe e por algum motivo o otimizador de query não ta usando ele?</li>
+</ul>
+<p>As vezes os índices sugeridos são excessivos, por exemplo, abaixo está a criação de parte do plano mostrado acima:</p>
+<pre class=" language-sql"><code class="prism  language-sql"><span class="token keyword">CREATE</span>  <span class="token keyword">NONCLUSTERED</span>  <span class="token keyword">INDEX</span>  <span class="token operator">&lt;</span>Name  <span class="token keyword">of</span>  Missing  <span class="token keyword">Index</span><span class="token punctuation">,</span>  sysname<span class="token punctuation">,</span><span class="token operator">&gt;</span>
+<span class="token keyword">ON</span>  Sales<span class="token punctuation">.</span>SalesOrderHeader <span class="token punctuation">(</span><span class="token keyword">Status</span><span class="token punctuation">,</span>SalesPersonID<span class="token punctuation">)</span>
+INCLUDE <span class="token punctuation">(</span>SalesOrderID<span class="token punctuation">,</span>SubTotal<span class="token punctuation">)</span>
+</code></pre>
+<p>Nesse caso já existe um ID em SalesPersonId. Status é uma coluna que na maioria das vezes tem apenas um valor, o que significa que como uma coluna de ordenação ela não possui muito valor. O impacto de 19% de performance não é tão impressionante, porém se for uma consulta que ocorre muitas vezes durante o dia vale a pena o esforço de adcionar um índice pra isso.<br>
+Considere outra sugestão de índice:<br>
+<img src="https://www.sqlshack.com/wp-content/uploads/2018/06/c-users-epollack-appdata-local-microsoft-windows-1-7.jpeg" alt="enter image description here"><br>
+Nesse exemplo o índice em falta sugerido é:</p>
+<pre class=" language-sql"><code class="prism  language-sql"><span class="token keyword">CREATE</span>  <span class="token keyword">NONCLUSTERED</span>  <span class="token keyword">INDEX</span> <span class="token punctuation">[</span><span class="token operator">&lt;</span>Name <span class="token keyword">of</span> Missing <span class="token keyword">Index</span><span class="token punctuation">,</span> sysname<span class="token punctuation">,</span><span class="token operator">&gt;</span><span class="token punctuation">]</span>
+<span class="token keyword">ON</span> <span class="token punctuation">[</span>Person<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token punctuation">[</span>Person<span class="token punctuation">]</span> <span class="token punctuation">(</span><span class="token punctuation">[</span>FirstName<span class="token punctuation">]</span><span class="token punctuation">)</span>
+INCLUDE <span class="token punctuation">(</span><span class="token punctuation">[</span>BusinessEntityID<span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token punctuation">[</span>Title<span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Dessa vez o índice sugerido aumentaria a performance em 93% e lidaria com a coluna não indexada (FirstName), precisamos colocar BussinesEntityID and Title como colunas de INCLUDE? Pra responder essa questão precisamos pensar “Como sabemos se a performance de uma query está boa?”, se apenas ao adicionar o índice resolver o problema, então parar nele é a decisão correta, caso a performance continue ruim, o próximo passo seria adiciona-las.<br>
+Em quanto tivermos em mente que índices precisam de manutenção e que eles diminuem a performance de operações de escrita, nós podemos abordar índice de uma perspectiva pragmática.</p>
+<h3 id="sobrecarregando-uma-tabela-de-índices">Sobrecarregando uma tabela de índices</h3>
+<p>Quando uma tabela tem muitos índices, as operações de escrita nela se tornam muito lentas (Como UPDATE, DELETE e INSERT), porque sempre que elas mudam algo, elas tem que mudar os índices, além disso índices consomem espaço de armazenamento.</p>
+<h3 id="deixando-uma-tabela-com-poucos-índices">Deixando uma tabela com poucos índices</h3>
+<p>Uma query com poucos índices não processa muito bem operações de leitura</p>
+<h3 id="sem-índice-clusterizadoprimary-key">Sem índice clusterizado/Primary key</h3>
+<p>Todas as tabelas devem ter um índice clusterizado e uma Primary Key. Índices clusterizados quase sempre são mais performáticos que índices de heap, e provem a infraestrutura necessária para a adição de índices não clusterizados. A Primary Key provem informações valiosas para o otimizador de querys. Se encontrar uma tabela sem algum desses dois, considere a adição deles como prioridade máxima e resolva isso antes de continuar pesquisando outras causas.</p>
+<h2 id="muitas-tabelas">Muitas tabelas</h2>
+<p>Para ajudar o otimizador SQL a encontrar o melhor plano de execução devemos diminuir o número de tabelas em uma query, visto que, cada tabela nova na query aumenta sua complexidade de forma fatorial, e o otimizador tem pouco tempo para encontrar entre todos os planos possíveis o melhor.<br>
+Baseado na forma que as tabelas forem ligadas, elas se encaixarão em uma das duas formas abaixo:</p>
+<ul>
+<li><strong>Left-Deep Tree</strong>: A join B, B join C, C join D, D join E, etc… Essa é uma query onde a maioria das tabelas se juntam de forma sequencial uma depois da outra.</li>
+<li><strong>Bushy Tree</strong>: A join B, A join C, B join D, C join E, etc…Essa é uma query onde as tabelas se dividem em múltiplas unidades lógicas em cada raiz da árvore.</li>
+</ul>
+<p>Bush Tree:<br>
+<img src="https://www.sqlshack.com/wp-content/uploads/2018/06/word-image-43.png" alt="enter image description here"><br>
+Left Deep Tree<br>
+<img src="https://www.sqlshack.com/wp-content/uploads/2018/06/word-image-44.png" alt="enter image description here"><br>
+Considerando que a Left-Deep Tree é ordenada de forma mais parecida com a que as tabelas são ligadas, o número de candidatos de plano de execução diminuem (As formulas matemáticas incluídas nas imagens são usadas para encontrar a quantidade de planos de execução possíveis para aquela árvore).<br>
+Para enfatizar isso, considere essa query envolvendo 12 tabelas:</p>
+<pre class=" language-sql"><code class="prism  language-sql"><span class="token keyword">SELECT</span>  <span class="token keyword">TOP</span>  <span class="token number">25</span>
+Product<span class="token punctuation">.</span>ProductID<span class="token punctuation">,</span>
+Product<span class="token punctuation">.</span>Name  <span class="token keyword">AS</span>  ProductName<span class="token punctuation">,</span>
+Product<span class="token punctuation">.</span>ProductNumber<span class="token punctuation">,</span>
+CostMeasure<span class="token punctuation">.</span>UnitMeasureCode<span class="token punctuation">,</span>
+CostMeasure<span class="token punctuation">.</span>Name  <span class="token keyword">AS</span>  CostMeasureName<span class="token punctuation">,</span>
+ProductVendor<span class="token punctuation">.</span>AverageLeadTime<span class="token punctuation">,</span>
+ProductVendor<span class="token punctuation">.</span>StandardPrice<span class="token punctuation">,</span>
+ProductReview<span class="token punctuation">.</span>ReviewerName<span class="token punctuation">,</span>
+ProductReview<span class="token punctuation">.</span>Rating<span class="token punctuation">,</span>
+ProductCategory<span class="token punctuation">.</span>Name  <span class="token keyword">AS</span>  CategoryName<span class="token punctuation">,</span>
+ProductSubCategory<span class="token punctuation">.</span>Name  <span class="token keyword">AS</span>  SubCategoryName
+<span class="token keyword">FROM</span>  Production<span class="token punctuation">.</span>Product
+<span class="token keyword">INNER</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>ProductSubCategory
+<span class="token keyword">ON</span>  ProductSubCategory<span class="token punctuation">.</span>ProductSubcategoryID  <span class="token operator">=</span>  Product<span class="token punctuation">.</span>ProductSubcategoryID
+<span class="token keyword">INNER</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>ProductCategory
+<span class="token keyword">ON</span>  ProductCategory<span class="token punctuation">.</span>ProductCategoryID  <span class="token operator">=</span>  ProductSubCategory<span class="token punctuation">.</span>ProductCategoryID
+<span class="token keyword">INNER</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>UnitMeasure  SizeUnitMeasureCode
+<span class="token keyword">ON</span>  Product<span class="token punctuation">.</span>SizeUnitMeasureCode  <span class="token operator">=</span>  SizeUnitMeasureCode<span class="token punctuation">.</span>UnitMeasureCode
+<span class="token keyword">INNER</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>UnitMeasure  WeightUnitMeasureCode
+<span class="token keyword">ON</span>  Product<span class="token punctuation">.</span>WeightUnitMeasureCode  <span class="token operator">=</span>  WeightUnitMeasureCode<span class="token punctuation">.</span>UnitMeasureCode
+<span class="token keyword">INNER</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>ProductModel
+<span class="token keyword">ON</span>  ProductModel<span class="token punctuation">.</span>ProductModelID  <span class="token operator">=</span>  Product<span class="token punctuation">.</span>ProductModelID
+<span class="token keyword">LEFT</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>ProductModelIllustration
+<span class="token keyword">ON</span>  ProductModel<span class="token punctuation">.</span>ProductModelID  <span class="token operator">=</span>  ProductModelIllustration<span class="token punctuation">.</span>ProductModelID
+<span class="token keyword">LEFT</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>ProductModelProductDescriptionCulture
+<span class="token keyword">ON</span>  ProductModelProductDescriptionCulture<span class="token punctuation">.</span>ProductModelID  <span class="token operator">=</span>  ProductModel<span class="token punctuation">.</span>ProductModelID
+<span class="token keyword">LEFT</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>ProductDescription
+<span class="token keyword">ON</span>  ProductDescription<span class="token punctuation">.</span>ProductDescriptionID  <span class="token operator">=</span>  ProductModelProductDescriptionCulture<span class="token punctuation">.</span>ProductDescriptionID
+<span class="token keyword">LEFT</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>ProductReview
+<span class="token keyword">ON</span>  ProductReview<span class="token punctuation">.</span>ProductID  <span class="token operator">=</span>  Product<span class="token punctuation">.</span>ProductID
+<span class="token keyword">LEFT</span>  <span class="token keyword">JOIN</span>  Purchasing<span class="token punctuation">.</span>ProductVendor
+<span class="token keyword">ON</span>  ProductVendor<span class="token punctuation">.</span>ProductID  <span class="token operator">=</span>  Product<span class="token punctuation">.</span>ProductID
+<span class="token keyword">LEFT</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>UnitMeasure  CostMeasure
+<span class="token keyword">ON</span>  ProductVendor<span class="token punctuation">.</span>UnitMeasureCode  <span class="token operator">=</span>  CostMeasure<span class="token punctuation">.</span>UnitMeasureCode
+<span class="token keyword">ORDER</span>  <span class="token keyword">BY</span>  Product<span class="token punctuation">.</span>ProductID  <span class="token keyword">DESC</span><span class="token punctuation">;</span>
+</code></pre>
+<p>Se essa query fosse uma bush tree teria:<br>
+(2n-2)! / (n-1)! = (2*12-1)! / (12-1)! = 28,158,588,057,600 possíveis planos de execução.<br>
+Se fosse uma left-deep tree teria:<br>
+n! = 12! = 479,001,600 possíveis planos de execução.</p>
+<p>Métodos para otimizar uma query com muitas tabelas:</p>
+<ul>
+<li>Mover a metadata ou colocar essas tabelas em uma outra query que põe esses dados em uma tabela temporária que pode ser usada em um JOIN depois.</li>
+<li>JOINs usados em uma única constante podem ser convertidos para parâmetro ou variável.</li>
+<li>Quebrar uma query grande em menores querys que podem ser ligadas depois</li>
+<li>Para querys muito usadas, considere o uso de views indexadas</li>
+<li>Remova tabelas desnecessárias, subquerys e joins<br>
+Para separar uma query grande em pequenas querys é preciso ter certeza que não vai ter mudanças de dados entre essas operações que podem alterar nossos resultados finais, para isso podemos usar um mix de níveis de isolação, transações, e bloqueios para garantir a integridade dos dados.</li>
+</ul>
+<p>Exemplo de otimizações feitas na query la de cima:</p>
+<pre class=" language-sql"><code class="prism  language-sql"><span class="token keyword">SELECT</span>  <span class="token keyword">TOP</span>  <span class="token number">25</span>
+Product<span class="token punctuation">.</span>ProductID<span class="token punctuation">,</span>
+Product<span class="token punctuation">.</span>Name  <span class="token keyword">AS</span>  ProductName<span class="token punctuation">,</span>
+Product<span class="token punctuation">.</span>ProductNumber<span class="token punctuation">,</span>
+ProductCategory<span class="token punctuation">.</span>Name  <span class="token keyword">AS</span>  ProductCategory<span class="token punctuation">,</span>
+ProductSubCategory<span class="token punctuation">.</span>Name  <span class="token keyword">AS</span>  ProductSubCategory<span class="token punctuation">,</span>
+Product<span class="token punctuation">.</span>ProductModelID
+<span class="token keyword">INTO</span>  <span class="token comment">#Product</span>
+<span class="token keyword">FROM</span>  Production<span class="token punctuation">.</span>Product
+<span class="token keyword">INNER</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>ProductSubCategory
+<span class="token keyword">ON</span>  ProductSubCategory<span class="token punctuation">.</span>ProductSubcategoryID  <span class="token operator">=</span>  Product<span class="token punctuation">.</span>ProductSubcategoryID
+<span class="token keyword">INNER</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>ProductCategory
+<span class="token keyword">ON</span>  ProductCategory<span class="token punctuation">.</span>ProductCategoryID  <span class="token operator">=</span>  ProductSubCategory<span class="token punctuation">.</span>ProductCategoryID
+<span class="token keyword">ORDER</span>  <span class="token keyword">BY</span>  Product<span class="token punctuation">.</span>ModifiedDate  <span class="token keyword">DESC</span><span class="token punctuation">;</span>
+<span class="token keyword">SELECT</span>
+Product<span class="token punctuation">.</span>ProductID<span class="token punctuation">,</span>
+Product<span class="token punctuation">.</span>ProductName<span class="token punctuation">,</span>
+Product<span class="token punctuation">.</span>ProductNumber<span class="token punctuation">,</span>
+CostMeasure<span class="token punctuation">.</span>UnitMeasureCode<span class="token punctuation">,</span>
+CostMeasure<span class="token punctuation">.</span>Name  <span class="token keyword">AS</span>  CostMeasureName<span class="token punctuation">,</span>
+ProductVendor<span class="token punctuation">.</span>AverageLeadTime<span class="token punctuation">,</span>
+ProductVendor<span class="token punctuation">.</span>StandardPrice<span class="token punctuation">,</span>
+ProductReview<span class="token punctuation">.</span>ReviewerName<span class="token punctuation">,</span>
+ProductReview<span class="token punctuation">.</span>Rating<span class="token punctuation">,</span>
+Product<span class="token punctuation">.</span>ProductCategory<span class="token punctuation">,</span>
+Product<span class="token punctuation">.</span>ProductSubCategory
+<span class="token keyword">FROM</span>  <span class="token comment">#Product  Product</span>
+<span class="token keyword">INNER</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>ProductModel
+<span class="token keyword">ON</span>  ProductModel<span class="token punctuation">.</span>ProductModelID  <span class="token operator">=</span>  Product<span class="token punctuation">.</span>ProductModelID
+<span class="token keyword">LEFT</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>ProductReview
+<span class="token keyword">ON</span>  ProductReview<span class="token punctuation">.</span>ProductID  <span class="token operator">=</span>  Product<span class="token punctuation">.</span>ProductID
+<span class="token keyword">LEFT</span>  <span class="token keyword">JOIN</span>  Purchasing<span class="token punctuation">.</span>ProductVendor
+<span class="token keyword">ON</span>  ProductVendor<span class="token punctuation">.</span>ProductID  <span class="token operator">=</span>  Product<span class="token punctuation">.</span>ProductID
+<span class="token keyword">LEFT</span>  <span class="token keyword">JOIN</span>  Production<span class="token punctuation">.</span>UnitMeasure  CostMeasure
+<span class="token keyword">ON</span>  ProductVendor<span class="token punctuation">.</span>UnitMeasureCode  <span class="token operator">=</span>  CostMeasure<span class="token punctuation">.</span>UnitMeasureCode<span class="token punctuation">;</span>
+<span class="token keyword">DROP</span>  <span class="token keyword">TABLE</span>  <span class="token comment">#Product;</span>
+</code></pre>
+<p>Esse é apenas um exemplo de otimização, além disso podemos ver tabelas, colunas, variáveis ou qualquer outra coisa que não estão sendo usadas e retira-las da query.</p>
+<h2 id="query-hints">Query Hints</h2>
+<p>Uma query hint é um comando direto pro otimizador SQL.<br>
+Existem diversos tipos de hints no SQL Server, que afetam níveis de isolação, tipos de join, bloqueio de tabela, e outros.<br>
+Perigos ao usar as hints:</p>
+<ul>
+<li>Futuras mudanças ao schema podem fazer com que uma hint se torne inútil ou até mesmo perigosa, sendo necessário altera-la.</li>
+<li>Hints podem obscurecer problemas maiores, como índices em falta, requisições de dados excessivamente largas ou regras de negócio quebradas. Nesse caso é preferível resolver a raiz do problema.</li>
+<li>Hints podem resultar em comportamentos estranhos como por exemplo dados sujos do NOLOCK.</li>
+<li>Usar uma hint pra lidar com um problema na ponta de um processo pode até otimiza-lo, mas quanto ao resto do processo, não há como garantir</li>
+</ul>
+<p>Alguns exemplos de query hint:</p>
+<ul>
+<li><strong>NOLOCK:</strong> Com essa hint, no caso do SQL achar um dado que está bloqueado, o SQL usará dados antigos, também conhecido como dado sujo.</li>
+<li><strong>RECOMPILE:</strong> Adicionar isso ao fim da query, vai fazer com que um novo plano de execução seja gerado toda vez que a query for executada.</li>
+<li><strong>MERGE/HASH/LOOP:</strong> Isso vai especificar um tipo específico de operação para o Join, isso é super arriscado visto que o tipo de join ideal muda a medida que as tabelas mudam.</li>
+<li><strong>OPTIMIZE FOR:</strong> Pode especificar um valor pra otimizar a query.</li>
+</ul>
+<h1 id="comandos-para-ver-estatísticas">Comandos para ver estatísticas</h1>
+<ul>
+<li><strong>SET STATISTICS TIME ON</strong><br>
+Mostra o tempo em milissegundos necessário para analisar, compilar e executar cada instrução.</li>
+<li><strong>SET STATISTICS OI ON</strong>
+<ol>
+<li><strong>Tabela:</strong> nome da tabela envolvida na consulta;</li>
+<li><strong>Número de verificações:</strong> número de buscas iniciadas para recuperar todos os valores para saída final;</li>
+<li><strong>Leituras lógicas:</strong> número de páginas lidas do cache de dados do SQL Server;</li>
+<li><strong>Leituras físicas:</strong> número de páginas lidas no disco do servidor;</li>
+<li><strong>Leituras read-ahead:</strong> número de páginas colocadas no cache para a consulta;</li>
+<li><strong>Leituras lógicas lob:</strong> número de colunas com valor grande: VARCHAR(MAX), VARCHAR(MAX) e VARBINARY(MAX) lidas do cache;</li>
+<li><strong>Leituras físicas lob:</strong> número de colunas com valor grande: VARCHAR(MAX), VARCHAR(MAX) e VARBINARY(MAX) lidas do disco do servidor;</li>
+<li><strong>Leituras read-ahead lob:</strong> número de colunas com valor grande: VARCHAR(MAX), VARCHAR(MAX) e VARBINARY(MAX) adicionadas no cache de dados.</li>
+</ol>
+</li>
+</ul>
+<h6 id="fonte">Fonte</h6>
+<p><a href="https://www.devmedia.com.br/otimizacao-de-consultas-sql/33485">https://www.devmedia.com.br/otimizacao-de-consultas-sql/33485</a><br>
+<a href="https://www.devmedia.com.br/10-tecnicas-de-otimizacao-de-consultas-sql/39499">https://www.devmedia.com.br/10-tecnicas-de-otimizacao-de-consultas-sql/39499</a> -&gt; Só os comandos pra ver estatísticas, o resto do conteúdo desse site é pago.<br>
+<a href="https://www.sqlshack.com/query-optimization-techniques-in-sql-server-tips-and-tricks/">https://www.sqlshack.com/query-optimization-techniques-in-sql-server-tips-and-tricks/</a></p>
+</div>
+</body>
+
+</html>
