@@ -1,5 +1,4 @@
 __pycache__
 node_modules
+out
 *.pyc
-/Javascript/Electron 1/out
-/Javascript/Electron 1/node_modules

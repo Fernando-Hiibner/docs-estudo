@@ -1,0 +1,10 @@
+npm init
+npm install --save-dev electron
+npm install --save-dev @electron-forge/cli
+
+Compilando
+npx electron-forge import
+npm run make
+
+Quill (Rich text editor)
+npm install quill@1.3.6
