@@ -1,0 +1,81 @@
+/* Configs gerais */
+form {
+    width: 100%;
+}
+input[type=button]{
+    border : 1px;
+    border-style: solid;
+    border-radius: 0.5cm;
+    padding: 10px;
+}
+input[type=text]{
+    display: inline;
+    border-radius: 0.5cm;
+    border-width: 1px;
+    outline: none;
+}
+input[type=date]{
+    border: 1px;
+    border-style: solid;
+    border-radius: 0.5cm;
+    outline: none;
+}
+input[type=submit]{
+    border : 1px;
+    border-style: solid;
+    border-radius: 0.5cm;
+    padding: 10px;
+}
+input[type=reset]{
+    border : 1px;
+    border-style: solid;
+    border-radius: 0.5cm;
+    padding: 10px;
+}
+
+.Editor {
+    border : 1px;
+    border-style: solid;
+    border-radius: 0.5cm;
+    border-color: #1e1e1e;
+    height: 100px;
+    padding : 1cm;
+}
+
+/* Configs Especificas ao tema */
+.body-white-mode {
+    color : #1e1e1e;
+    background-color: white;
+}
+.body-dark-mode {
+    color : #cccccc;
+    background-color: #1e1e1e;
+}
+.input-button-white-mode {
+    color : #1e1e1e;
+    background-color: #cccccc;
+}
+.input-button-dark-mode {
+    color : #cccccc;
+    background-color: #252526;
+}
+.input-text-white-mode {
+    color : #1e1e1e;
+    background-color: white;
+    border-color : #1e1e1e;
+}
+.input-text-dark-mode {
+    color: #cccccc;
+    background-color: #252526;
+    border-color : #cccccc;
+}
+.input-date-white-mode {
+    color : #1e1e1e;
+    background-color: white;
+    border-color: #1e1e1e;
+}
+.input-date-dark-mode {
+    color : #cccccc;
+    background-color: #252525;
+    border-color: #cccccc;
+}

@@ -5,12 +5,16 @@
         <script rel = "text/javascript" src = "index.js"></script>
     </head>
     <body class = 'body-white-mode'>
-        <form>
+        <form action = "/form_receiver.js">
             <input type = "button" onclick="modoEscuro()" value="Modo Escuro" class = 'input-button-white-mode'><br>
             <label for = "firstName">Primeiro Nome:</label><br>
             <input type="text" id = "firstName" name = "firstName" class = "input-text-white-mode"><br>
             <label for = "lastName">Ultimo Nome:</label><br>
             <input type="text" id = "lastName" name = "lastName" class = "input-text-white-mode"><br>
+            <label for = "birthday">Data de nascimento:</label><br>
+            <input type="date" id = "birthday" name = "birthday" class = "input-date-white-mode"><br>
+            <input type="submit" id = "submit" name = "submit" class = "input-button-white-mode">
+            <input type="reset" class = "input-button-white-mode">
         </form>
     </body>
 </html>

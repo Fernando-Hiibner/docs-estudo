@@ -1,4 +1,4 @@
-function modoEscuro()
+export function modoEscuro()
 {
     var body = document.body;
     if(body.getAttribute('class') === 'body-white-mode')

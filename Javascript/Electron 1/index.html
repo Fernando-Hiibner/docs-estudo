@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+        <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
+        <link rel = "stylesheet" href = "./src/css/index.css">
+        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+        <!-- <script rel = "text/javascript" src = "./src/js/index.js"></script> -->
+        <title>Electron app 1</title>
+  </head>
+    </head>
+    <body class = 'body-white-mode'>
+        <form>
+            <input type = "button" id = "dark-mode" value="Modo Escuro" class = 'input-button-white-mode'><br>
+            <label for = "firstName">Primeiro Nome:</label><br>
+            <input type="text" id = "firstName" name = "firstName" class = "input-text-white-mode"><br>
+            <label for = "lastName">Ultimo Nome:</label><br>
+            <input type="text" id = "lastName" name = "lastName" class = "input-text-white-mode"><br>
+            <label for = "birthday">Data de nascimento:</label><br>
+            <input type="date" id = "birthday" name = "birthday" class = "input-date-white-mode"><br>
+            <input type="submit" id = "submit" name = "submit" class = "input-button-white-mode">
+            <input type="reset" class = "input-button-white-mode">
+        </form>
+        <div class = "Editor", id  = "Editor">
+
+        </div>
+        <div id="editor">
+            <p>Hello World!</p>
+            <p>Some initial <strong>bold</strong> text</p>
+            <p><br></p>
+        </div>
+        <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+        <script src = "renderer.js"></script>
+    </body>
+</html>
