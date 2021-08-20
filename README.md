@@ -6,6 +6,9 @@
 * Talvez integrar os arquivos que passam de CSV pro Banco
 * Usar o que eu ja desenvolvi pro Notecalc pra deixar o APP mais bonito
 
+# Novo repo do electron 2
+https://github.com/Fernando-Hiibner/Electron-Notecalc
+
 # Links interessantes
 * https://stackoverflow.com/questions/31071952/generate-sql-statements-from-a-pandas-dataframe  
 * https://towardsdatascience.com/do-you-know-python-has-a-built-in-database-d553989c87bd
